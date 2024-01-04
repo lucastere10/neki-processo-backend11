@@ -10,7 +10,10 @@ import org.springframework.stereotype.Service;
 
 import br.com.neki.project.dto.SkillDto.SkillRequestDto;
 import br.com.neki.project.dto.SkillDto.SkillResponseDto;
+import br.com.neki.project.dto.log.LogRequestDTO;
 import br.com.neki.project.model.Skill;
+import br.com.neki.project.model.Enum.EnumLog;
+import br.com.neki.project.model.Enum.EnumTipoEntidade;
 import br.com.neki.project.repository.SkillRepository;
 import javax.transaction.Transactional;
 
@@ -19,6 +22,9 @@ public class SkillService {
 
     @Autowired
     private SkillRepository skillRepository;
+
+    @Autowired
+    private LogService logService;
 
     @Autowired
     private ModelMapper mapper;
@@ -31,6 +37,12 @@ public class SkillService {
         Skill skillModel = mapper.map(skillRequest, Skill.class);
 
         skillModel = skillRepository.save(skillModel);
+
+        // Fazer Auditoria
+        LogRequestDTO logRequestDTO = new LogRequestDTO();
+        logService.adicionar(logService.verificarUsuarioLogado(), logRequestDTO, EnumLog.CREATE,
+                EnumTipoEntidade.SKILL, "",
+                logService.mapearObjetoParaString(skillModel));
 
         return mapper.map(skillModel, SkillResponseDto.class);
     }
@@ -72,6 +84,13 @@ public class SkillService {
 
         skillModel = skillRepository.save(skillModel);
 
+        // Fazer Auditoria
+        LogRequestDTO logRequestDTO = new LogRequestDTO();
+        logService.adicionar(logService.verificarUsuarioLogado(), logRequestDTO, EnumLog.UPDATE,
+                EnumTipoEntidade.SKILL,
+                logService.mapearObjetoParaString(skillBase),
+                logService.mapearObjetoParaString(skillModel));
+
         return mapper.map(skillModel, SkillResponseDto.class);
     }
 
@@ -79,6 +98,12 @@ public class SkillService {
     public void delete(Integer id) {
         findById(id);
         skillRepository.deleteById(id);
+
+        // Fazer Auditoria
+        LogRequestDTO logRequestDTO = new LogRequestDTO();
+        logService.adicionar(logService.verificarUsuarioLogado(), logRequestDTO, EnumLog.DELETE,
+                EnumTipoEntidade.SKILL, "", "");
+
     }
 
 }

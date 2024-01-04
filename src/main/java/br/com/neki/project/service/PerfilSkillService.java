@@ -10,7 +10,10 @@ import org.springframework.stereotype.Service;
 
 import br.com.neki.project.dto.PerfilSkill.PerfilSkillRequestDto;
 import br.com.neki.project.dto.PerfilSkill.PerfilSkillResponseDto;
+import br.com.neki.project.dto.log.LogRequestDTO;
 import br.com.neki.project.model.PerfilSkill;
+import br.com.neki.project.model.Enum.EnumLog;
+import br.com.neki.project.model.Enum.EnumTipoEntidade;
 import br.com.neki.project.repository.PerfilSkillRepository;
 import javax.transaction.Transactional;
 
@@ -19,6 +22,9 @@ public class PerfilSkillService {
     
     @Autowired
     private PerfilSkillRepository perfilSkillRepository;
+
+    @Autowired
+    private LogService logService;
 
     @Autowired
     private ModelMapper mapper;
@@ -31,6 +37,12 @@ public class PerfilSkillService {
         PerfilSkill perfilSkillModel = mapper.map(perfilSkillRequest, PerfilSkill.class);
 
         perfilSkillModel = perfilSkillRepository.save(perfilSkillModel);
+
+        // Fazer Auditoria
+        LogRequestDTO logRequestDTO = new LogRequestDTO();
+        logService.adicionar(logService.verificarUsuarioLogado(), logRequestDTO, EnumLog.CREATE,
+                EnumTipoEntidade.SKILL, "",
+                logService.mapearObjetoParaString(perfilSkillModel));
 
         return mapper.map(perfilSkillModel, PerfilSkillResponseDto.class);
     }
@@ -62,6 +74,13 @@ public class PerfilSkillService {
         }
 
         perfilSkillModel = perfilSkillRepository.save(perfilSkillModel);
+
+        // Fazer Auditoria
+        LogRequestDTO logRequestDTO = new LogRequestDTO();
+        logService.adicionar(logService.verificarUsuarioLogado(), logRequestDTO, EnumLog.UPDATE,
+                EnumTipoEntidade.SKILL,
+                logService.mapearObjetoParaString(perfilSkillBase),
+                logService.mapearObjetoParaString(perfilSkillModel));
 
         return mapper.map(perfilSkillModel, PerfilSkillResponseDto.class);
     }

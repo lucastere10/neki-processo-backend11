@@ -11,5 +11,5 @@ public class PerfilSkillBaseDto {
     private Integer PerfilSkillId;
 
     @NotNull
-    private String PerfilSkillVersion;
+    private String PerfilSkillVersao;
 }
