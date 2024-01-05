@@ -90,6 +90,7 @@ public class UsuarioService {
             throw new ResourceBadRequest("O email informado já está cadastrado no sistema.");
         }
 
+        usuarioModel.setImagemUrl("https://robohash.org/" + usuarioModel.getEmail())    ;
         String senha = passwordEncoder.encode(usuarioModel.getSenha());
 
         usuarioModel.setSenha(senha);

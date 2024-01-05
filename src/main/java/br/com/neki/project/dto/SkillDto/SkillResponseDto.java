@@ -12,6 +12,6 @@ public class SkillResponseDto extends SkillBaseDto{
     
     private Integer skillId;
 
-    private List<PerfilSkillBaseDto> PerfilSkills;
+    //private List<PerfilSkillBaseDto> PerfilSkills;
 
 }
