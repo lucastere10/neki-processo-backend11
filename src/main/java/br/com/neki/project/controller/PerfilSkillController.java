@@ -9,6 +9,7 @@ import br.com.neki.project.service.PerfilSkillService;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,13 +29,11 @@ public class PerfilSkillController {
     private PerfilSkillService perfilSkillService;
 
     // CREATE
-    @PostMapping()
-    public ResponseEntity<PerfilSkillResponseDto> create(@RequestBody PerfilSkillRequestDto perfilSkill) {
-        // TODO: process POST request
-
-        return ResponseEntity
-                .status(201)
-                .body(perfilSkillService.create(perfilSkill));
+    @PostMapping
+    public ResponseEntity<PerfilSkillResponseDto> create(@RequestBody PerfilSkillRequestDto perfilSkillRequestDto) {
+        PerfilSkillResponseDto perfilSkillResponseDto = perfilSkillService.create(perfilSkillRequestDto,
+                perfilSkillRequestDto.getSkillNome());
+        return new ResponseEntity<>(perfilSkillResponseDto, HttpStatus.CREATED);
     }
 
     // FIND ALL
@@ -45,6 +44,15 @@ public class PerfilSkillController {
                 .body(perfilSkillService.findAll());
     }
 
+    // FIND ALL
+    @GetMapping("/user")
+    public ResponseEntity<List<PerfilSkillResponseDto>> findAllByUser() {
+        return ResponseEntity
+                .status(200)
+                .body(perfilSkillService.findAllPerfilSkillsForLoggedInUser());
+    }
+
+    
     // FIND BY ID
     @GetMapping("/{id}")
     public ResponseEntity<PerfilSkillResponseDto> findById(@PathVariable Integer id) {

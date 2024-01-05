@@ -6,20 +6,26 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import br.com.neki.project.dto.PerfilSkill.PerfilSkillRequestDto;
 import br.com.neki.project.dto.PerfilSkill.PerfilSkillResponseDto;
 import br.com.neki.project.dto.log.LogRequestDTO;
 import br.com.neki.project.model.PerfilSkill;
+import br.com.neki.project.model.Skill;
+import br.com.neki.project.model.Usuario;
 import br.com.neki.project.model.Enum.EnumLog;
 import br.com.neki.project.model.Enum.EnumTipoEntidade;
 import br.com.neki.project.repository.PerfilSkillRepository;
+import br.com.neki.project.repository.SkillRepository;
+
 import javax.transaction.Transactional;
 
 @Service
 public class PerfilSkillService {
-    
+
     @Autowired
     private PerfilSkillRepository perfilSkillRepository;
 
@@ -27,14 +33,37 @@ public class PerfilSkillService {
     private LogService logService;
 
     @Autowired
+    private SkillRepository skillRepository;
+
+    @Autowired
     private ModelMapper mapper;
-    
+
     // CRUD
- 
     // Create
     @Transactional
-    public PerfilSkillResponseDto create(PerfilSkillRequestDto perfilSkillRequest) {
+    public PerfilSkillResponseDto create(PerfilSkillRequestDto perfilSkillRequest, String skillNome) {
         PerfilSkill perfilSkillModel = mapper.map(perfilSkillRequest, PerfilSkill.class);
+
+        // verificar se a combinação de  skillNome e PerfilSkillVersao já existe
+        Optional<PerfilSkill> existingEntry = perfilSkillRepository.findBySkill_SkillNomeAndPerfilSkillVersao(skillNome,
+                perfilSkillRequest.getPerfilSkillVersao());
+        if (existingEntry.isPresent()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "A combinação de Habilidade e Versão já existe");
+        }
+
+        // Definir usuario usando verificarUsuarioLogado
+        Usuario loggedUser = logService.verificarUsuarioLogado();
+        perfilSkillModel.setUsuario(loggedUser);
+
+        // Definir skill com skillNome
+        Optional<Skill> skillOptional = skillRepository.findBySkillNome(skillNome);
+        if (skillOptional.isPresent()) {
+            Skill skill = skillOptional.get();
+            perfilSkillModel.setSkill(skill);
+        } else {
+            // Handle the case where no Skill with the given name exists
+        }
 
         perfilSkillModel = perfilSkillRepository.save(perfilSkillModel);
 
@@ -55,6 +84,14 @@ public class PerfilSkillService {
                 .collect(Collectors.toList());
     }
 
+    public List<PerfilSkillResponseDto> findAllPerfilSkillsForLoggedInUser() {
+        Usuario loggedUser = logService.verificarUsuarioLogado();
+        List<PerfilSkill> perfilSkills = perfilSkillRepository.findByUsuarioEmail(loggedUser.getEmail());
+        return perfilSkills.stream()
+                .map(perfilSkill -> mapper.map(perfilSkill, PerfilSkillResponseDto.class))
+                .collect(Collectors.toList());
+    }
+
     public PerfilSkillResponseDto findById(Integer id) {
         Optional<PerfilSkill> optPerfilSkill = perfilSkillRepository.findById(id);
 
@@ -67,11 +104,26 @@ public class PerfilSkillService {
 
         PerfilSkill perfilSkillBase = mapper.map(findById(id), PerfilSkill.class);
         PerfilSkill perfilSkillModel = mapper.map(perfilSkillRequest, PerfilSkill.class);
+        
+        // verificar se a combinação de  skillNome e PerfilSkillVersao já existe
+        Optional<PerfilSkill> existingEntry = perfilSkillRepository.findBySkill_SkillNomeAndPerfilSkillVersao(perfilSkillRequest.getSkillNome(),
+                perfilSkillRequest.getPerfilSkillVersao());
+        if (existingEntry.isPresent()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "A combinação de Habilidade e Versão já existe");
+        }
 
         perfilSkillModel.setPerfilSkillId(id);
         if (perfilSkillModel.getPerfilSkillVersao() == null) {
             perfilSkillModel.setPerfilSkillVersao(perfilSkillBase.getPerfilSkillVersao());
         }
+
+        // definir habilidade
+        perfilSkillModel.setSkill(perfilSkillBase.getSkill());
+
+        // Definir usuario usando verificarUsuarioLogado
+        Usuario loggedUser = logService.verificarUsuarioLogado();
+        perfilSkillModel.setUsuario(loggedUser);
 
         perfilSkillModel = perfilSkillRepository.save(perfilSkillModel);
 
@@ -90,5 +142,5 @@ public class PerfilSkillService {
         findById(id);
         perfilSkillRepository.deleteById(id);
     }
-    
+
 }

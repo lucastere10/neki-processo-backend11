@@ -37,7 +37,7 @@ public class Usuario implements UserDetails {
     @Column(nullable = false)
     private Date dataCadastro;
 
-    @Column(nullable = false)
+    @Column
     private String telefone;
 
     @Column(nullable = false, unique = true)
@@ -45,6 +45,9 @@ public class Usuario implements UserDetails {
 
     @Column(nullable = false)
     private String senha;
+
+    @Column
+    private String imagemUrl;
 
     @Column(nullable = false)
     private EnumTipoUsuario perfil;
@@ -167,12 +170,20 @@ public class Usuario implements UserDetails {
         this.logs = logs;
     }
 
+    public String getImagemUrl() {
+        return imagemUrl;
+    }
+
+    public void setImagemUrl(String imagemUrl) {
+        this.imagemUrl = imagemUrl;
+    }
+
     // public List<Pedido> getPedidos() {
-    //     return pedidos;
+    // return pedidos;
     // }
 
     // public void setPedidos(List<Pedido> pedidos) {
-    //     this.pedidos = pedidos;
+    // this.pedidos = pedidos;
     // }
 
     @Override

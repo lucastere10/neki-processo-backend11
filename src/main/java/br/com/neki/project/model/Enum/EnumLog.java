@@ -5,6 +5,4 @@ public enum EnumLog {
     CREATE,
     UPDATE,
     DELETE,
-    ACTIVATE,
-    DEACTIVATE;
 }

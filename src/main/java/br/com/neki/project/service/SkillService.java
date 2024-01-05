@@ -14,6 +14,7 @@ import br.com.neki.project.dto.log.LogRequestDTO;
 import br.com.neki.project.model.Skill;
 import br.com.neki.project.model.Enum.EnumLog;
 import br.com.neki.project.model.Enum.EnumTipoEntidade;
+import br.com.neki.project.model.exceptions.ResourceBadRequest;
 import br.com.neki.project.repository.SkillRepository;
 import javax.transaction.Transactional;
 
@@ -80,6 +81,10 @@ public class SkillService {
 
         if (skillModel.getSkillUrl() == null) {
             skillModel.setSkillUrl(skillBase.getSkillUrl());
+        }
+
+        if (skillRepository.findBySkillNome(skillModel.getSkillNome()).isPresent()) {
+            throw new ResourceBadRequest("skill");
         }
 
         skillModel = skillRepository.save(skillModel);
