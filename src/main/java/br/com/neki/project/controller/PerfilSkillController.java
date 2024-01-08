@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.neki.project.dto.PerfilSkill.PerfilSkillRequestDto;
 import br.com.neki.project.dto.PerfilSkill.PerfilSkillResponseDto;
+import br.com.neki.project.model.Usuario;
 import br.com.neki.project.service.PerfilSkillService;
 
 import java.util.List;
@@ -44,7 +45,13 @@ public class PerfilSkillController {
                 .body(perfilSkillService.findAll());
     }
 
-    // FIND ALL
+    @GetMapping("/usersbyskill/{skillName}")
+    public ResponseEntity<List<PerfilSkillResponseDto>> findUsersBySkill(@PathVariable String skillName) {
+        List<PerfilSkillResponseDto> users = perfilSkillService.findUsersBySkill(skillName);
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+
+    // FIND ALL SKILLS OF A USER
     @GetMapping("/user")
     public ResponseEntity<List<PerfilSkillResponseDto>> findAllByUser() {
         return ResponseEntity
@@ -52,7 +59,6 @@ public class PerfilSkillController {
                 .body(perfilSkillService.findAllPerfilSkillsForLoggedInUser());
     }
 
-    
     // FIND BY ID
     @GetMapping("/{id}")
     public ResponseEntity<PerfilSkillResponseDto> findById(@PathVariable Integer id) {

@@ -155,9 +155,13 @@ public class UsuarioService {
             usuarioModel.setPerfil(usuarioBase.getPerfil());
         }
 
-        if (usuarioRepository.findByEmail(usuarioModel.getEmail()).isPresent()) {
+        //verificar se o email já está sendo utilizado e nao é no usuario sendo verificado
+        Optional<Usuario> existingUser = usuarioRepository.findByEmail(usuarioModel.getEmail());
+        if (existingUser.isPresent() && !existingUser.get().getId().equals(id)) {
             throw new ResourceBadRequest("O email informado já está cadastrado no sistema.");
         }
+
+        usuarioModel.setImagemUrl("https://robohash.org/" + usuarioModel.getEmail());
 
         String senha = passwordEncoder.encode(usuarioModel.getSenha());
         usuarioModel.setId(id);
