@@ -9,6 +9,7 @@ public abstract class UsuarioBaseDTO {
     protected String telefone;
     protected String email;
     protected EnumTipoUsuario perfil;
+    protected String imagemUrl;
 
     public String getNome() {
         return nome;
@@ -48,6 +49,14 @@ public abstract class UsuarioBaseDTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getImagemUrl() {
+        return imagemUrl;
+    }
+
+    public void setImagemUrl(String imagemUrl) {
+        this.imagemUrl = imagemUrl;
     }
 
 }

@@ -7,6 +7,5 @@ import lombok.Setter;
 @Setter
 public class SkillRequestDto extends SkillBaseDto {
     
-    private Integer skillId;
 
 }

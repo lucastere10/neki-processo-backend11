@@ -2,17 +2,22 @@ package br.com.neki.project.dto.PerfilSkill;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
-import br.com.neki.project.dto.usuario.UsuarioBaseDTO;
-import br.com.neki.project.dto.SkillDto.SkillBaseDto;
+import br.com.neki.project.dto.usuario.UsuarioResponseDTO;
+import lombok.Getter;
+import lombok.Setter;
+import br.com.neki.project.dto.SkillDto.SkillResponseDto;
+
 import javax.validation.constraints.NotNull;
 
+@Getter
+@Setter
 public class PerfilSkillResponseDto extends PerfilSkillBaseDto {
 
     @NotNull
-    private UsuarioBaseDTO usuario;
+    private UsuarioResponseDTO usuario;
 
     @NotNull
-    @JsonBackReference
-    private SkillBaseDto skill;
+    // @JsonBackReference
+    private SkillResponseDto skill;
 
 }

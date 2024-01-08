@@ -25,7 +25,7 @@ public class Skill {
     @Column(nullable = false, length = 255, unique = true)
     private String skillNome;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String skillDescricao;
     
     @Column()

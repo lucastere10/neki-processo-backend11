@@ -26,7 +26,7 @@ import br.com.neki.project.dto.usuario.UsuarioResponseDTO;
 import br.com.neki.project.model.Usuario;
 import br.com.neki.project.model.Enum.EnumLog;
 import br.com.neki.project.model.Enum.EnumTipoEntidade;
-
+import br.com.neki.project.model.Enum.EnumTipoUsuario;
 import br.com.neki.project.model.exceptions.ResourceBadRequest;
 import br.com.neki.project.model.exceptions.ResourceNotFound;
 import br.com.neki.project.repository.UsuarioRepository;
@@ -62,6 +62,9 @@ public class UsuarioService {
     public UsuarioResponseDTO adicionar(UsuarioRequestDTO usuarioReq) {
         Usuario usuarioModel = mapper.map(usuarioReq, Usuario.class);
 
+        usuarioModel.setTelefone("(21) 9 91999199");
+        usuarioModel.setPerfil(EnumTipoUsuario.ADMIN);
+
         if (usuarioModel.getNome() == null) {
             throw new ResourceBadRequest("Você não inseriu o nome do usuário, que é um campo que não pode ser nulo");
         }
@@ -90,6 +93,7 @@ public class UsuarioService {
             throw new ResourceBadRequest("O email informado já está cadastrado no sistema.");
         }
 
+        usuarioModel.setImagemUrl("https://robohash.org/" + usuarioModel.getEmail());
         String senha = passwordEncoder.encode(usuarioModel.getSenha());
 
         usuarioModel.setSenha(senha);
@@ -150,6 +154,14 @@ public class UsuarioService {
         if (usuarioModel.getPerfil() == null) {
             usuarioModel.setPerfil(usuarioBase.getPerfil());
         }
+
+        //verificar se o email já está sendo utilizado e nao é no usuario sendo verificado
+        Optional<Usuario> existingUser = usuarioRepository.findByEmail(usuarioModel.getEmail());
+        if (existingUser.isPresent() && !existingUser.get().getId().equals(id)) {
+            throw new ResourceBadRequest("O email informado já está cadastrado no sistema.");
+        }
+
+        usuarioModel.setImagemUrl("https://robohash.org/" + usuarioModel.getEmail());
 
         String senha = passwordEncoder.encode(usuarioModel.getSenha());
         usuarioModel.setId(id);
