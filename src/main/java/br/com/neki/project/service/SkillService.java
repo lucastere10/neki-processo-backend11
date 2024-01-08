@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import br.com.neki.project.dto.SkillDto.SkillRequestDto;
@@ -14,6 +15,7 @@ import br.com.neki.project.dto.log.LogRequestDTO;
 import br.com.neki.project.model.Skill;
 import br.com.neki.project.model.Enum.EnumLog;
 import br.com.neki.project.model.Enum.EnumTipoEntidade;
+import br.com.neki.project.model.exceptions.CascadeDeleteException;
 import br.com.neki.project.model.exceptions.ResourceBadRequest;
 import br.com.neki.project.repository.SkillRepository;
 import javax.transaction.Transactional;
@@ -30,12 +32,24 @@ public class SkillService {
     @Autowired
     private ModelMapper mapper;
 
-// CRUD
+    // CRUD
 
     // Create
     @Transactional
     public SkillResponseDto create(SkillRequestDto skillRequest) {
         Skill skillModel = mapper.map(skillRequest, Skill.class);
+
+        if (skillModel.getSkillNome() == null) {
+            throw new ResourceBadRequest("Você não inseriu o nome da habilidade, que é um campo que não pode ser nulo");
+        }
+
+        if (skillModel.getSkillUrl() == "") {
+            skillModel.setSkillUrl("https://robohash.org/" + skillModel.getSkillNome());
+        }
+
+        if (skillRepository.findBySkillNome(skillModel.getSkillNome()).isPresent()) {
+            throw new ResourceBadRequest("A Habilidade já está cadastrada no sistema.");
+        }
 
         skillModel = skillRepository.save(skillModel);
 
@@ -69,8 +83,6 @@ public class SkillService {
         Skill skillBase = mapper.map(findById(id), Skill.class);
         Skill skillModel = mapper.map(skillRequest, Skill.class);
 
-        skillModel.setSkillId(id);
-
         if (skillModel.getSkillNome() == null) {
             skillModel.setSkillNome(skillBase.getSkillNome());
         }
@@ -83,10 +95,7 @@ public class SkillService {
             skillModel.setSkillUrl(skillBase.getSkillUrl());
         }
 
-        if (skillRepository.findBySkillNome(skillModel.getSkillNome()).isPresent()) {
-            throw new ResourceBadRequest("skill");
-        }
-
+        skillModel.setSkillId(id);
         skillModel = skillRepository.save(skillModel);
 
         // Fazer Auditoria
@@ -102,13 +111,17 @@ public class SkillService {
     // Delete
     public void delete(Integer id) {
         findById(id);
-        skillRepository.deleteById(id);
+
+        try {
+            skillRepository.deleteById(id);
+        } catch (DataIntegrityViolationException ex) {
+            throw new CascadeDeleteException("A Habilidade já está relacionada a um perfil");
+        }
 
         // Fazer Auditoria
         LogRequestDTO logRequestDTO = new LogRequestDTO();
         logService.adicionar(logService.verificarUsuarioLogado(), logRequestDTO, EnumLog.DELETE,
                 EnumTipoEntidade.SKILL, "", "");
-
     }
 
 }

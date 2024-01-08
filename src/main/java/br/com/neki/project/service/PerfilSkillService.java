@@ -13,11 +13,13 @@ import org.springframework.web.server.ResponseStatusException;
 import br.com.neki.project.dto.PerfilSkill.PerfilSkillRequestDto;
 import br.com.neki.project.dto.PerfilSkill.PerfilSkillResponseDto;
 import br.com.neki.project.dto.log.LogRequestDTO;
+import br.com.neki.project.dto.usuario.UsuarioRequestDTO;
 import br.com.neki.project.model.PerfilSkill;
 import br.com.neki.project.model.Skill;
 import br.com.neki.project.model.Usuario;
 import br.com.neki.project.model.Enum.EnumLog;
 import br.com.neki.project.model.Enum.EnumTipoEntidade;
+import br.com.neki.project.model.exceptions.ResourceBadRequest;
 import br.com.neki.project.repository.PerfilSkillRepository;
 import br.com.neki.project.repository.SkillRepository;
 
@@ -44,17 +46,21 @@ public class PerfilSkillService {
     public PerfilSkillResponseDto create(PerfilSkillRequestDto perfilSkillRequest, String skillNome) {
         PerfilSkill perfilSkillModel = mapper.map(perfilSkillRequest, PerfilSkill.class);
 
-        // verificar se a combinação de  skillNome e PerfilSkillVersao já existe
-        Optional<PerfilSkill> existingEntry = perfilSkillRepository.findBySkill_SkillNomeAndPerfilSkillVersao(skillNome,
-                perfilSkillRequest.getPerfilSkillVersao());
-        if (existingEntry.isPresent()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "A combinação de Habilidade e Versão já existe");
-        }
-
         // Definir usuario usando verificarUsuarioLogado
         Usuario loggedUser = logService.verificarUsuarioLogado();
         perfilSkillModel.setUsuario(loggedUser);
+
+        // Get the email from the logged in user
+        String email = loggedUser.getEmail();
+
+        // verificar se a combinação de skillNome, PerfilSkillVersao e email já existe
+        Optional<PerfilSkill> existingEntry = perfilSkillRepository
+                .findBySkill_SkillNomeAndPerfilSkillVersaoAndUsuario_Email(skillNome,
+                        perfilSkillRequest.getPerfilSkillVersao(), email);
+        if (existingEntry.isPresent()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "A combinação de Habilidade e Versão para esse usuário já existe");
+        }
 
         // Definir skill com skillNome
         Optional<Skill> skillOptional = skillRepository.findBySkillNome(skillNome);
@@ -62,7 +68,8 @@ public class PerfilSkillService {
             Skill skill = skillOptional.get();
             perfilSkillModel.setSkill(skill);
         } else {
-            // Handle the case where no Skill with the given name exists
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Essa habilidade não existe");
         }
 
         perfilSkillModel = perfilSkillRepository.save(perfilSkillModel);
@@ -104,9 +111,10 @@ public class PerfilSkillService {
 
         PerfilSkill perfilSkillBase = mapper.map(findById(id), PerfilSkill.class);
         PerfilSkill perfilSkillModel = mapper.map(perfilSkillRequest, PerfilSkill.class);
-        
-        // verificar se a combinação de  skillNome e PerfilSkillVersao já existe
-        Optional<PerfilSkill> existingEntry = perfilSkillRepository.findBySkill_SkillNomeAndPerfilSkillVersao(perfilSkillRequest.getSkillNome(),
+
+        // verificar se a combinação de skillNome e PerfilSkillVersao já existe
+        Optional<PerfilSkill> existingEntry = perfilSkillRepository.findBySkill_SkillNomeAndPerfilSkillVersao(
+                perfilSkillRequest.getSkillNome(),
                 perfilSkillRequest.getPerfilSkillVersao());
         if (existingEntry.isPresent()) {
             throw new ResponseStatusException(
