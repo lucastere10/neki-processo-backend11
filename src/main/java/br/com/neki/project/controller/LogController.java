@@ -10,12 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.neki.project.service.LogService;
-import io.swagger.annotations.Api;
 import br.com.neki.project.dto.log.LogResponseDTO;
 
 @RestController
 @RequestMapping("/api/logs")
-@Api(value = "Logs", description = "Logs para Auditoria")
 public class LogController {
 
     @Autowired

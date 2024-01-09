@@ -3,21 +3,36 @@ package br.com.neki.project.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+
 
 @Configuration
-@EnableSwagger2
 public class SwaggerConfig {
+	
     @Bean
-    public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2)
-                .select()
-                .apis(RequestHandlerSelectors.any())
-                .paths(PathSelectors.any())
-                .build();
+    public OpenAPI OpenAPI() {
+        return new OpenAPI()
+            .components(new Components()
+            .addSecuritySchemes("bearerAuth", new SecurityScheme()
+            .type(SecurityScheme.Type.HTTP)
+            .scheme("bearer")
+            .bearerFormat("JWT")
+            )
+        )
+            .info(new Info()
+                .title("Skill+")
+                .version("0.10v")
+                .description("Backend de um projeto desenvolvido para um processo seletivo. Ele foi construído usando Java 11 e possui um sistema de login que utiliza tokens JWT para autenticação. O projeto inclui um CRUD completo para perfil, habilidades, habilidades do usuário e logs para auditoria. Além disso, possui tratamento de erros com ErrorResponse e exceções personalizadas.")
+                .contact(new Contact()
+                .name("Lucas Caldas")
+                .email("lucastere10@gmail.com")
+                )
+            )
+            .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
     }
-}
+};
